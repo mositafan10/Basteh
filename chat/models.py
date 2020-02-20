@@ -1,17 +1,23 @@
 from django.db import models
-from account.models import User
+from account.models import User, BaseModel
 
+MASSAGE_TYPE = [
+    ('0','text'),
+    ('1','picture'),
+    ('2','voice'),
+]
 
-class BaseChat (models.Model):
-    id = models.AutoField(primary_key=True)
-    create_at = models.DateTimeField(auto_now=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class Massage(BaseModel):
+    # need exact time with second
+    # need for pic and voice upload in chat ?
+    # need voice call for future without any number 
+    # seperate massage in two gropy : packet and travel and different display
+    sender = models.ForeignKey(User, on_delete=models.PROTECT, related_name="sender")
+    receiver = models.ForeignKey(User, on_delete=models.PROTECT, related_name="receiver")
+    mtype = models.CharField(max_length=3, choices=MASSAGE_TYPE)
+    text = models.TextField() # is that ok for saving other type in textfield ? savaing address !
+    chat_id = models.PositiveIntegerField() # for making group each conversation. is this needed ?
 
+    def __str__(self):
+        return "%s --> %s" %(self.sender, self.receiver)
 
-class Massaging (BaseChat):
-
-    sender = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="sender_of_massage")
-    receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="receiver_of_massage")
-    text_of_massage = models.TextField("text_of_massage")
