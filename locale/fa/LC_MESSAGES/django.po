@@ -1,5 +1,6 @@
-msgid ""
-msgstr ""
+msgid "Max File Size is 1 MB \n"
+msgstr "حداکثر حجم 1 مگابایت است\n"
+
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2020-02-06 14:32+0330\n"
 "PO-Revision-Date: 2020-02-06 14:33+0330\n"

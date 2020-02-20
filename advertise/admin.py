@@ -44,7 +44,7 @@ class CountryAdmin(admin.ModelAdmin):
     
     def city(self,obj):
         cities = []
-        for c in obj.city_set.all():
+        for c in obj.city.all():
             cities.append(c)
         return cities
 

@@ -2,7 +2,7 @@ from django.db import models
 from account.models import User, BaseModel, Country, City
 from django.db import IntegrityError
 import random
-
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 STATUS_CHOICES = [
         ('0', 'در انتظار تایید'),
@@ -11,6 +11,12 @@ STATUS_CHOICES = [
         ('3', 'پذیرش شده'),
         ('4', 'ارسال شده'),
         ('5', 'عدم تایید'),
+] 
+
+Offer = [
+        ('0', 'تایید '),
+        ('1', 'عدم تایید'),
+        ('2', 'در انتظار پاسخ'),
 ] 
 
 # should complete TODO
@@ -47,33 +53,35 @@ Airlines = [
 ]
 
 def generate_slug():
-    return ''.join(str(random.randint(0, 9)) for _ in range(8))
+    return ''.join(str(string.ascii_uppercase + string.ascii_lowercase) for _ in range(8))
     
 class Packet(BaseModel):
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
     # need to search between countries TODO
-    origin_country = models.ForeignKey(Country, on_delete = models.PROTECT,related_name="origin_country")
+    origin_country = models.ForeignKey(Country, on_delete = models.PROTECT, related_name="origin_country")
     # should select just related city not all city TODO
     # need to search between cities TODO
-    origin_city = models.ForeignKey(City, on_delete=models.PROTECT,related_name="origin_city")
-    destination_country = models.ForeignKey(Country, on_delete=models.PROTECT,related_name="destination_country")
+    origin_city = models.ForeignKey(City, on_delete=models.PROTECT, related_name="origin_city")
+    destination_country = models.ForeignKey(Country, on_delete=models.PROTECT, related_name="destination_country")
     # should select just related city not all city also not the same with origin city TODO
-    destination_city = models.ForeignKey(City, on_delete=models.PROTECT,related_name="destination_city")
+    destination_city = models.ForeignKey(City, on_delete=models.PROTECT, related_name="destination_city")
     category = models.CharField(max_length=20, choices=PACKET_CATEGORY)
-    weight = models.PositiveIntegerField() # should be validate ( normally up to 30 kg) TODO
+    weight = models.PositiveIntegerField(validators=[
+            MaxValueValidator(30),
+            MinValueValidator(1)
+        ])
     weight_unit = models.CharField(max_length=5, choices=Weight_Unit)
     suggested_price = models.PositiveIntegerField()
-    currency_price = models.CharField("currency",max_length=3, choices=CURRENCY)  
+    currency_price = models.CharField("currency", max_length=3, choices=CURRENCY)  
     place_of_get = models.CharField(max_length=20 ,choices=PLACE) 
     place_of_give = models.CharField(max_length=20 ,choices=PLACE)  
     start_date = models.DateField()
     end_date = models.DateField()
     buy = models.BooleanField("buy availibity")
-    qr_code = models.ImageField(blank = True) # is it correct ? TODO
     visit_count = models.PositiveIntegerField()
+    picture = models.ImageField(blank=True) # need at least 3 picture TODO
     status = models.CharField(max_length=3, choices=STATUS_CHOICES)
-    picture = models.ImageField(blank = True) # need at least 3 picture TODO
-    slug = models.CharField(defualt=generate_slug, editable=False, unique=True, db_index=True)
+    slug = models.CharField(default=generate_slug, max_length=8, editable=False, unique=True, db_index=True)
  
     def __str__(self):
         return str(self.id)
@@ -95,36 +103,29 @@ class Travel(BaseModel):
     departure_city = models.ForeignKey(City, on_delete=models.PROTECT, related_name="depar_city")
     destination = models.ForeignKey(Country, on_delete=models.PROTECT, related_name="dest_country")
     destination_city = models.ForeignKey(City, on_delete=models.PROTECT, related_name="dest_city")
-    empty_weight = models.PositiveIntegerField() # should be validate ( normally up to 30 kg)
+    empty_weight = models.PositiveIntegerField(validators=[
+            MaxValueValidator(30),
+            MinValueValidator(1)
+        ]) 
     weight_unit = models.CharField(max_length=3, choices=Weight_Unit)
     ticket = models.OneToOneField('Ticket', on_delete=models.PROTECT) 
     place_of_get = models.CharField(max_length=20, choices=PLACE)
     place_of_give = models.CharField(max_length=20, choices=PLACE)
     status = models.CharField(max_length=3, choices=STATUS_CHOICES)
-    # travel_date = models.DateField()  # should be future TODO
-    # ticket_picture = models.FileField(blank=True) # must validate format(pdf & jpg) and size TODO
-
+    
     def __str__(self):
         return str(self.id)
 
-    # we should check if the user has right to send travel info TODO
-    def check_permisssion(self):
-        pass
 
 class Offer(BaseModel):
     packet = models.ForeignKey(Packet, on_delete=models.PROTECT, related_name="packet_ads")
     travel = models.ForeignKey(Travel, on_delete=models.PROTECT, related_name="travel_ads")
     price = models.PositiveIntegerField()
     currency = models.CharField(max_length=3, choices=CURRENCY)
+    status = models.CharField(max_length=3, choices=Offer)
 
     def __str__(self):
         return str(self.id)
-    
-    # we should check if the user has right to send offer TODO
-    def check_permisssion(self):
-        pass
-    # not same owner for travel and packet 
-    # same origin and destinatin for travel and packet
 
     # calculate number of offer to change the status of packet
     def change_status(self):

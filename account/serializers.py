@@ -1,54 +1,58 @@
 from rest_framework import serializers
-from natural_keys import NaturalKeyModelSerializer
-from .models import Profile, Social, Score, CommentUser, Country, City, Follow
+from .models import Profile, Social, Score, CommentUser, Country, City, Follow, User
+
 
 class CountrySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Country
-        fields = "__all__"
-
-class ProfileSerializer(serializers.ModelSerializer):
-    country = CountrySerializer()
-    class Meta:
-        model = Profile
-        fields = ['id', 'user', 'picture', 'id_cart',
-                  'country', 'city', 'birthday', 'is_approved']
-
-    # def validate_picture(self,value):
-    #     raise serializers.ValidationError("maximum size")
-    #     return value
-
-
-class SocialSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Social
-        fields = ['user', 'title', 'social_id', 'is_approved']
-
-
-class ScoreSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Score
-        fields = ['owner', 'receiver', 'score']
-
-
-class CommentUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CommentUser
-        fields = ['owner', 'receiver', 'comment', 'is_approved']
-
-
+        fields = ["name", "country", "is_active"]
 
 
 class CitySerializer(serializers.ModelSerializer):
     class Meta:
         model = City
-        fields = ['name', 'country']
+        fields = ['name', 'country', "is_active"]
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        field = "__all__"
+
+class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    country = CountrySerializer()
+    city = CitySerializer()
+    
+    class Meta:
+        model = Profile
+        fields = "__all__"
+
+    def validate_size(fieldfile_obj):
+        filesize = fieldfile_obj.size
+        KB_limit = 1000
+        if KB_limit < filesize:
+            raise ValidationError("Max File Size is 1 MB")
+            # should be translated TODO
+
+
+class SocialSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
+    class Meta:
+        model = Social
+        fields = ['id','user', 'title', 'social_id', 'is_approved']
+
+
+class CommentUserSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
+    class Meta:
+        model = CommentUser
+        fields = ['id','owner', 'receiver', 'comment', 'is_approved']
 
 
 class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
-        fields = ['follower', 'following']
-
- 
+        fields = ['id','follower', 'following']
