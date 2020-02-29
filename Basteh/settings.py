@@ -27,19 +27,27 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
+    'allauth',
+    'allauth.socialaccount',
+    'rest_auth',
+    'rest_auth.registration',
     'phonenumber_field',
     'account',
     'advertise',
     'blog',
     'chat',
 ]
+
+
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ]
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny', )
 }
 
 MIDDLEWARE = [
@@ -133,10 +141,14 @@ CORS_ORIGIN_WHITELIST = [
     "http://127.0.0.1:8000",
 ]
 
-# TODO django memcache backend for windows
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': 'unix:/tmp/memcached.sock',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT' : 10000,
     }
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' 
+
+SITE_ID = 1

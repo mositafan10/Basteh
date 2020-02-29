@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import Profile, Social, CommentUser, Score, Follow
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display=('user','country','city','birthday')
+    list_display=('id','user','country','city','birthday')
     list_filter=('country','city','birthday')
 
 class SocialAdmin(admin.ModelAdmin):

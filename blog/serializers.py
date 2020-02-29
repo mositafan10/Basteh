@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Post, Category, Tag, Comment, Score
 
+
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post

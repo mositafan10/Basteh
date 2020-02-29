@@ -5,19 +5,25 @@ from .models import Profile, Social, Score, CommentUser, Country, City, Follow, 
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
-        fields = ["name", "country", "is_active"]
+        fields = ['id','name', 'city_list', 'is_active']
 
 
 class CitySerializer(serializers.ModelSerializer):
     class Meta:
         model = City
-        fields = ['name', 'country', "is_active"]
+        fields = ['id','name', 'country', 'is_active']
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        field = "__all__"
+        fields = ['id','username']
+
+        def create(self, validated_data):
+            user = super(UserSerializer, self).create(validated_data)
+            user.set_password(validated_data['password'])
+            user.save()
+            return user
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
@@ -26,14 +32,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Profile
-        fields = "__all__"
-
-    def validate_size(fieldfile_obj):
-        filesize = fieldfile_obj.size
-        KB_limit = 1000
-        if KB_limit < filesize:
-            raise ValidationError("Max File Size is 1 MB")
-            # should be translated TODO
+        fields =  ['id','user','bio','picture','id_cart','country','city','phone','birthday','favorite_gift','level','score','scores_count','comment_count','follower_count','following_count','is_approved']
 
 
 class SocialSerializer(serializers.ModelSerializer):

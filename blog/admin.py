@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import Post, Category, Comment, Tag, Score, Bookmark
 
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('category', 'get_tags', 'view_post', 'comment', 'like', 'dislike','score', 'is_approved', 'create_at')
+    list_display = ('id','category', 'get_tags', 'view_count', 'comment', 'like_count', 'dislike_count','score','score_count', 'is_approved', 'create_at')
     list_editable = ('is_approved',)
     # search_fields = ()
 

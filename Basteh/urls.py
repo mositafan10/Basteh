@@ -4,12 +4,11 @@ from django.contrib import admin
 
 
 urlpatterns = [
-    path('', include('account.urls')),
     path('admin/', admin.site.urls),
-    path('account/', include('account.urls')),
-    path('advertise/', include('advertise.urls')),
-    path('blog/', include('blog.urls')),
-    path('chat/', include('chat.urls')),
+    path('api/v1/account/', include('account.urls')),
+    path('api/v1/advertise/', include('advertise.urls')),
+    path('api/v1/blog/', include('blog.urls')),
+    path('api/v1/chat/', include('chat.urls')),
 ]
 
-admin.site.site_header = "My site" # why not work ?
+admin.site.site_header = "Basteh"
