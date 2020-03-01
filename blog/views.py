@@ -101,7 +101,7 @@ def visit_count(request, pk):
 @permission_classes([AllowAny])
 def score(request, pk): 
     try:
-        posts = Post.objects.get(pk=pk)
+        post = Post.objects.get(pk=pk)
     except Post.DoesNotExist:
         return HttpResponse(status=404)
     ip = request.META.get("HTTP_REMOTE_ADDR")
@@ -110,11 +110,6 @@ def score(request, pk):
     key = '%s_%s' % (model_name, ip)
     if not cache.get(key) == pk:
         cache.set(key, pk, 2)
-        post = Post.objects.get(pk=pk)
-        post.score_cal(value)
+        post.calculate_score(value)
         return HttpResponse(status=201)
     return HttpResponse(status=400)
-
-
-
-

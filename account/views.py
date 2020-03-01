@@ -11,10 +11,12 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
-from .utils import generate_otp,set_otp, verify_otp
+from .utils import generate_otp,set_otp, verify_otp, send_sms
 from .models import Profile, Social, Score, CommentUser, City, Country, Follow, User
 from .serializers import *
 from .permissions import IsOwnerProfileOrReadOnly
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
@@ -49,32 +51,55 @@ def signup(request):
     otp = generate_otp()
     print (otp)
     set_otp(phone_number, otp)
-    # send_sms(phone_number, otp)
-    # return json({"otp": otp})
+    send_sms(phone_number, otp)
     return HttpResponse(status=200)
 
 
-@api_view(['POST'])
-@permission_classes((AllowAny,))
-def create_user(request):
-    serialized = UserSerializer(data=request.data)
-    if serialized.is_valid():
-        User.objects.create_user(
-            serialized.save()
-        )
-        return Response(serialized.data, status=201)
-    else:
-        return Response(serialized._errors, status=400)
+# @api_view(['POST'])
+# @permission_classes((AllowAny,))
+# def create_user(request):
+#     serialized = UserSerializer(data=request.data)
+#     if serialized.is_valid():
+#         User.objects.create_user(
+#             serialized.save()
+#         )
+#         return Response(serialized.data, status=201)
+#     else:
+#         return Response(serialized._errors, status=400)
 
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def verification(request):
     phone_number = request.GET['phone_number']
-    otp = request.GET['otp']
+    refresh = None
+    user, is_created = User.objects.get_or_create(phone_number=phone_number)
+    if is_created==False and 'password' in request.GET:
+        user.check_password(request.GET['password'])
+        refresh = RefreshToken.for_user(user)
+    otp = request.GET.get('otp', None)
     if verify_otp(phone_number, otp):
-        token, is_created = Token.objects.get_or_create(user=request.user)
-        return JsonResponse("token")
+        if is_created is True:
+            user.save()
+        refresh = RefreshToken.for_user(user)
+    if refresh is not None:
+        return JsonResponse({"token": str(refresh.access_token),
+                             "refresh": str(refresh)})
+    else:
+        raise ValidationError()
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def update_user(request):
+    print(request.user)
+    return JsonResponse({})
+
+
+# @api_view(['POST'])
+# @permission_classes([permissions.AllowAny])
+# def update_profile(request):
+
+
 
 # @api_view(['POST'])
 # @permission_classes([permissions.AllowAny])

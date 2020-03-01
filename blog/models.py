@@ -34,8 +34,8 @@ class Post(BaseModel):
         self.view_count += 1
         self.save()
 
-    def score_cal(self, int):
-        self.score = (self.score + int)/(self.score_count + 1)
+    def calculate_score(self, new_score):
+        self.score = (self.score + new_score)/(self.score_count + 1)
         self.score_count += 1
         self.save()
 

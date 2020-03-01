@@ -19,11 +19,12 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id','username']
 
-        def create(self, validated_data):
-            user = super(UserSerializer, self).create(validated_data)
-            user.set_password(validated_data['password'])
-            user.save()
-            return user
+        # def create(self, validated_data):
+        #     user = super(UserSerializer, self).create(validated_data)
+        #     user.set_password(validated_data['password'])
+        #     user.save()
+        #     return user
+
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()

@@ -1,9 +1,13 @@
 from django.contrib import admin
-from .models import Profile, Social, CommentUser, Score, Follow
+from .models import Profile, Social, CommentUser, Score, Follow, User
+
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('id','username','phone_number')
+
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display=('id','user','country','city','birthday')
-    list_filter=('country','city','birthday')
+    list_display = ('id','user','country','city','birthday')
+    list_filter = ('country','city','birthday')
 
 class SocialAdmin(admin.ModelAdmin):
     list_display = ('user','title','social_id', 'is_approved')
@@ -26,6 +30,7 @@ class CommentUserAdmin(admin.ModelAdmin):
     # search_fields = ('owner','receiver','comment') with error , why ?
 
 
+admin.site.register(User, UserAdmin)
 admin.site.register(Social, SocialAdmin)
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(CommentUser,CommentUserAdmin)
