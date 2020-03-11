@@ -17,7 +17,7 @@ class CitySerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id','username']
+        fields = ['id','phone_number','first_name']
 
         # def create(self, validated_data):
         #     user = super(UserSerializer, self).create(validated_data)
@@ -33,7 +33,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Profile
-        fields =  ['id','user','bio','picture','id_cart','country','city','phone','birthday','favorite_gift','level','score','scores_count','comment_count','follower_count','following_count','is_approved']
+        fields =  ['id','user','bio','picture','id_cart','country','city','birthday','favorite_gift','level','score','scores_count','comment_count','follower_count','following_count','is_approved']
 
 
 class SocialSerializer(serializers.ModelSerializer):

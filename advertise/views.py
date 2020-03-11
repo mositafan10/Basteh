@@ -8,6 +8,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Packet, Travel, Offer, Bookmark, Report, Ticket
 from .serializers import *
+from .permissions import IsOwnerPacketOrReadOnly
 
 
 @permission_classes([permissions.AllowAny])
@@ -16,7 +17,7 @@ def packet_list(request):
     if request.method == 'GET':
         packet = Packet.objects.all()
         serializer = PacketSerializer(packet, many=True,)
-        return JsonResponse(serializer.data, safe=False)
+        return JsonResponse(serializer.data)
     elif request.method == 'POST':
         data = JSONParser.parse(request)
         serializer = PacketSerializer(data)
@@ -25,6 +26,28 @@ def packet_list(request):
             return JsonResponse(serializer.data, status=201)
         return JsonResponse(seializer.errors, status=400)
 
+
+@permission_classes([AllowAny])
+@api_view(['GET'])
+def user_packet_list(request):
+    if request.method == 'GET':
+        packet = Packet.objects.all()
+        serializer = PacketSerializer(packet, many=True)
+        return JsonResponse(serializer.data)
+
+@permission_classes([permissions.AllowAny])
+@api_view(['PUT'])
+def update_packet(request, pk):
+    if request.method == 'PUT':
+        packet = Packet.objects.get(pk=pk)
+        if request.user == packet.owner.user :
+            data = JSONParser.parse(request)
+            serializer = PacketSerializer(data=data)
+            if serialzier.is_valid():
+                serializer.save()
+                return JsonResponse(serializer.data)
+            return JsonResponse(serializer.error, status=400)
+        return JsonResponse({"Access Deneid" : "You have not permision to edit this packet"}, status=400)
 
 @permission_classes([permissions.AllowAny])
 @api_view(['GET', 'PUT', 'DELETE'])

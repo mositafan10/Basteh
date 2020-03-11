@@ -10,12 +10,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.authtoken.models import Token
 from .utils import generate_otp,set_otp, verify_otp, send_sms
 from .models import Profile, Social, Score, CommentUser, City, Country, Follow, User
 from .serializers import *
 from .permissions import IsOwnerProfileOrReadOnly
-from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class UserList(generics.ListAPIView):
@@ -51,114 +51,72 @@ def signup(request):
     otp = generate_otp()
     print (otp)
     set_otp(phone_number, otp)
-    send_sms(phone_number, otp)
+    # send_sms(phone_number, otp)
     return HttpResponse(status=200)
-
-
-# @api_view(['POST'])
-# @permission_classes((AllowAny,))
-# def create_user(request):
-#     serialized = UserSerializer(data=request.data)
-#     if serialized.is_valid():
-#         User.objects.create_user(
-#             serialized.save()
-#         )
-#         return Response(serialized.data, status=201)
-#     else:
-#         return Response(serialized._errors, status=400)
 
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
-def verification(request):
+def login(request):
     phone_number = request.GET['phone_number']
+    password = request.GET.get('password', None)
     refresh = None
     user, is_created = User.objects.get_or_create(phone_number=phone_number)
-    if is_created==False and 'password' in request.GET:
-        user.check_password(request.GET['password'])
-        refresh = RefreshToken.for_user(user)
+    if is_created==False and password is not None:
+        if user.check_password(request.GET['password']):
+            refresh = RefreshToken.for_user(user)
+        else:
+            error = "Your password is incorrect"
     otp = request.GET.get('otp', None)
-    if verify_otp(phone_number, otp):
-        if is_created is True:
-            user.save()
-        refresh = RefreshToken.for_user(user)
+    if otp is not None:
+        if verify_otp(phone_number, otp):
+            if is_created is True:
+                user.save()
+            refresh = RefreshToken.for_user(user)
+        else :
+            error = "The code is incorrect"
     if refresh is not None:
         return JsonResponse({"token": str(refresh.access_token),
                              "refresh": str(refresh)})
     else:
-        raise ValidationError()
+        raise ValidationError(error)
+
+@permission_classes([permissions.AllowAny])
+@api_view(['POST'])
+def reset_password(request):
+    # phone_number = request.GET['phone_number']
+    # user = User.objects.get(phone_number=phone_number)
+    # if request.user == user:
+    #     otp = generate_otp()
+    #     user.set_password (otp)
+    #     # send_sms(phone_number, otp)
+    #     return HttpResponse(status=200)
+    pass
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def update_user(request):
-    print(request.user)
-    return JsonResponse({})
-
-
-# @api_view(['POST'])
-# @permission_classes([permissions.AllowAny])
-# def update_profile(request):
-
-
-
-# @api_view(['POST'])
-# @permission_classes([permissions.AllowAny])
-# def login(request):
-#     username = request.GET['username']
-#     password = request.GET['password']
-#     if username is None or password is None:
-#         return Response({'error': 'Please provide both username and password'},
-#                         status=HTTP_400_BAD_REQUEST)
-#     user = authenticate(username=username, password=password)
-#     if not user:
-#         return Response({'error': 'Invalid Credentials'},
-#                         status=HTTP_404_NOT_FOUND)
-#     token, _ = Token.objects.get_or_create(user=user)
-#     return Response({'token': token.key},
-#                     status=HTTP_200_OK)
-
-
-# @api_view(['GET', 'POST'])
-# @permission_classes([permissions.AllowAny])
-# def profile_list(request):
-#     if request.method == 'GET':
-#         profiles = Profile.objects.all()
-#         serializer = ProfileSerializer(profiles, many=True)
-#         return JsonResponse(serializer.data, safe=False)
-#     elif request.method == 'POST':
-#         data = JSONParser().parse(request)
-#         serializer = ProfileSerializer(data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return JsonResponse(serializer.data, status=201)
-#         return JsonResponse(serializer.errors, status=400)
-
-
-# @api_view(['GET','PUT','DELETE'])
-# @permission_classes([permissions.AllowAny])
-# def profile_detail(request, pk):
-#     try:
-#         profiles = Profile.objects.get(pk=pk)
-#     except Profile.DoesNotExist:
-#         return HttpResponse(status=404)
-#     if request.method == 'GET':
-#         serializer = ProfileSerializer(profiles)
-#         return JsonResponse(serializer.data, safe=False)
-#     elif request.method == 'PUT':
-#         if request.user.is_authenticated:
-#             data = JSONParser.parse(request)
-#             serializer = ProfileSerializer(data=data)
-#         else:
-#             raise PermissionDenied
-#         if serializer.is_valid():
-#             serializer.save()
-#             return JsonResponse(serializer.data)
-#         return JsonResponse(serializer.errors, status=400)
-#     elif request.method == 'DELETE':
-#         if not request.user.is_authenticated:
-#             raise PermissionDenied
-#         profiles.delete()
-#         return HttpResponse(status=204)
+    user = User.objects.get(phone_number=request.user)
+    password = request.GET.get('password', None)
+    first_name = request.GET.get('first_name', None)
+    last_name = request.GET.get('last_name', None)
+    user.set_password(password) 
+    user.first_name = first_name
+    user.last_name = last_name
+    user.save()
+    profile, is_created = Profile.objects.get_or_create(user=request.user)
+    bio = request.GET.get('bio', None) # does not work TODO
+    country = request.GET.get('country', None)
+    city = request.GET.get('city', None)
+    birthday = request.GET.get('birthday', None)
+    favorite_gift = request.GET.get('favorite_gift', None)
+    profile.bio = bio
+    profile.country = country
+    profile.city = city
+    profile.birthday = birthday
+    profile.favorite_gift = favorite_gift
+    profile.save()
+    return JsonResponse({"Result" : True})
 
 
 @api_view(['GET', 'PUT', 'DELETE'])

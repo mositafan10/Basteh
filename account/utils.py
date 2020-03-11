@@ -8,7 +8,6 @@ def generate_otp():
 def set_otp(phone_number, otp):
     key = '%s' % (phone_number)
     cache.set(key, otp, 1200)
-    print(cache.get(key))
 
 # find attacker 
 # what happened when same time request is received ?
@@ -29,12 +28,10 @@ def send_sms(phone_number, otp):
 
 def verify_otp(phone_number, otp):
     key = '%s' % (phone_number)
-    print(key)
-    print(cache.get(key))
     if cache.get(key) == otp:
         return True
     else:        
-        raise Exception("عدد وارد شده اشتباه است")
+        raise Exception("The code is incorrect")
     
 def validate_picture(fieldfile_obj):
         filesize = fieldfile_obj.size

@@ -63,13 +63,13 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True, editable=False)
-    username = models.CharField(max_length=20, blank=True, null=True)
+    first_name = models.CharField(max_length=10, blank=True, null=True)
+    last_name = models.CharField(max_length=10, blank=True, null=True)
     phone_number = models.CharField(max_length=15, editable=False, unique=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     USERNAME_FIELD = 'phone_number'
-    # REQUIRED_FIELDS = ['phone_number']
 
     objects = UserManager()
     
@@ -79,20 +79,20 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Profile (BaseModel):
     user = models.OneToOneField(User, on_delete=models.PROTECT)
-    bio = models.TextField()
     picture = models.ImageField(blank=True, null=True, validators=[validate_picture]) #need default
     id_cart = models.ImageField(blank=True, null=True, validators=[validate_picture])
+    bio = models.TextField(blank=True, null=True)
     country = models.ForeignKey('Country', on_delete=models.CASCADE, blank=True, null=True) # default = get from address
     city = models.ForeignKey('City', on_delete=models.CASCADE, blank=True, null=True)
     birthday = models.DateField(blank=True, null=True)
-    favorite_gift = models.CharField(max_length=50, blank=True)
+    favorite_gift = models.CharField(max_length=50, blank=True, null=True)
+    gender = models.CharField(max_length=1, choices=Gender, blank=True, null=True)
     level = models.CharField(max_length=1, choices=Level, default='3')
     score = models.DecimalField(default=0.0, max_digits=3, decimal_places=1)
     scores_count = models.PositiveIntegerField(default=0)
     comment_count = models.PositiveIntegerField(default=0)
     follower_count = models.PositiveIntegerField(default=0)
     following_count = models.PositiveIntegerField(default=0)
-    # gender = models.CharField(max_length=1, choices=Gender, blank=True, null=True)
     is_approved = models.BooleanField(default=False)
 
 

@@ -12,7 +12,7 @@ class PacketAdmin(admin.ModelAdmin):
     search_fields = ('owner___username','category')
 
     def owner_user(self, obj):
-        return obj.owner.user.username
+        return obj.owner.user
 
 
 class CityAdmin(admin.ModelAdmin):
